@@ -52,28 +52,35 @@ jobid=`get_jobid`
 syncfile=`pwd`"/ompi_clock_sync_data.$jobid"
 tmp_timings=`pwd`"/ompi_timing_temp_file.$jobid"
 tmp_out=`pwd`"/ompi_mpirun_prof.$jobid"
+mytim=`pwd`"/ompi_timings.$jobid"
 
-timing_bkp=$OMPI_MCA_opal_timing_output
 export OMPI_MCA_opal_timing_output=$tmp_timings
+#export OMPI_MCA_rml_base_timing=true
+export OMPI_MCA_oob_base_timing=true
 
 opts=`extract_nodeset_opts $@`
 ${ompi_instdir}/mpirun --npernode 1 $opts ${ompi_instdir}/mpisync -o $syncfile >$tmp_out 2>&1
 
-export OMPI_MCA_opal_timing_output=$timing_bkp
+export OMPI_MCA_opal_timing_output=$mytim
 export OMPI_MCA_opal_timing_sync_file=$syncfile
 
 # Remove old output
-rm -f $OMPI_MCA_opal_timing_output
+rm -f $tmp_timings*
 
 # Run a program of interest
 ${ompi_instdir}/mpirun $@
 
-if [ -n "$timing_bkp" ]; then
-    ${ompi_instdir}/ompi_timing_post $timing_bkp $timing_bkp.post
+touch timings.$jobid.log
+cat $mytim* >> timings.$jobid.log
+rm -f $mytim*
+mv timings.$jobid.log $mytim
+
+if [ -n "$mytim" ]; then
+    ${ompi_instdir}/ompi_timing_post $mytim $mytim.post
 fi
 
 # Cleanup
 rm -f $syncfile
-rm -f $tmp_timings
+rm -f $mytim
 rm -f $tmp_out
 
