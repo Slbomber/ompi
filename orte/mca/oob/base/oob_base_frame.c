@@ -133,7 +133,7 @@ static int orte_oob_base_open(mca_base_open_flag_t flags)
     orte_state.add_job_state(ORTE_JOB_STATE_FT_RESTART, orte_oob_base_ft_event, ORTE_ERROR_PRI);
 #endif
 
-    OPAL_TIMING_INIT(&tm_oob);
+    OPAL_TIMING_INIT_EXT(&tm_oob, OPAL_TIMING_GET_TIME_OF_DAY);
 
      /* Open up all available components */
     return mca_base_framework_components_open(&orte_oob_base_framework, flags);

@@ -101,7 +101,7 @@ static int orte_rml_base_open(mca_base_open_flag_t flags)
                                                 INT_MAX, 1)) {
         return ORTE_ERR_OUT_OF_RESOURCE;
     }
-    OPAL_TIMING_INIT(&tm_rml);
+    OPAL_TIMING_INIT_EXT(&tm_rml, OPAL_TIMING_GET_TIME_OF_DAY);
     /* Open up all available components */
     return mca_base_framework_components_open(&orte_rml_base_framework, flags);
 }
