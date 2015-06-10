@@ -157,6 +157,7 @@ void mca_oob_tcp_send_handler(int sd, short flags, void *cbdata)
         if (NULL != msg) {
             /* if the header hasn't been completely sent, send it */
             if (!msg->hdr_sent) {
+                msg->hdr.snd_num = peer->snd_cntr;
                 if (ORTE_SUCCESS == (rc = send_bytes(peer))) {
                     /* header is completely sent */
                     msg->hdr_sent = true;
@@ -312,6 +313,7 @@ void mca_oob_tcp_send_handler(int sd, short flags, void *cbdata)
              */
             peer->send_msg = (mca_oob_tcp_send_t*)
                 opal_list_remove_first(&peer->send_queue);
+            peer->snd_cntr++;
         }
 
         /* if nothing else to do unregister for send event notifications */

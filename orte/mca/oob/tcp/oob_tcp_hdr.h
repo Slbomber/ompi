@@ -62,6 +62,8 @@ typedef struct {
     uint32_t seq_num;
     /* number of bytes in message */
     uint32_t nbytes;
+    /* number of peer snd*/
+    uint32_t snd_num;
 } mca_oob_tcp_hdr_t;
 /**
  * Convert the message header to host byte order

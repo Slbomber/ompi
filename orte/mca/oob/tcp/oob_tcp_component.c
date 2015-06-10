@@ -1215,6 +1215,7 @@ static void peer_cons(mca_oob_tcp_peer_t *peer)
     OBJ_CONSTRUCT(&peer->send_queue, opal_list_t);
     peer->send_msg = NULL;
     peer->recv_msg = NULL;
+    peer->snd_cntr = 0;
     peer->send_ev_active = false;
     peer->recv_ev_active = false;
     peer->timer_ev_active = false;
