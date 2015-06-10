@@ -450,17 +450,19 @@ int opal_timing_report(opal_timing_t *t, char *fname)
     int buf_size = 0;
     struct interval_descr *descr = NULL;
     int rc = OPAL_SUCCESS;
+    
+    char *timfile = malloc(sizeof(char)*(strlen(fname)+strlen(jobid)+2));
+    sprintf(timfile, "%s.%s", fname, jobid);
 
-    if( fname != NULL ){
-        fp = fopen(fname,"a");
+    if( timfile != NULL ){
+        fp = fopen(timfile,"a");
         if( fp == NULL ){
             opal_output(0, "opal_timing_report: Cannot open %s file"
-                        " for writing timing information!",fname);
+                        " for writing timing information!",timfile);
             rc = OPAL_ERROR;
             goto err_exit;
         }
     }
-
     _prepare_descriptions(t, &descr);
     
     buf = malloc(OPAL_TIMING_OUTBUF_SIZE+1);
@@ -545,6 +547,9 @@ err_exit:
     }
     if( buf != NULL ){
         free(buf);
+    }
+    if(timfile != NULL){
+        free(timfile);
     }
     if( fp != NULL ){
         fflush(fp);
