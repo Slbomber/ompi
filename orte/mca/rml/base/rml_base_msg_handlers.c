@@ -230,7 +230,7 @@ void orte_rml_base_process_msg(int fd, short flags, void *cbdata)
 {
     orte_rml_recv_t *msg = (orte_rml_recv_t*)cbdata;
     OPAL_TIMING_EVENT((&tm_rml,"from %s %d bytes [ID:%d] [RML_RECEIVE_START] [TAG:%d]",
-                       ORTE_NAME_PRINT(&msg->sender), msg->iov.iov_len, msg->snd_num));
+                       ORTE_NAME_PRINT(&msg->sender), msg->iov.iov_len, msg->snd_num, msg->tag));
     OPAL_OUTPUT_VERBOSE((5, orte_rml_base_framework.framework_output,
                          "%s message received from %s for tag %d on channel=%d",
                          ORTE_NAME_PRINT(ORTE_PROC_MY_NAME),
