@@ -484,18 +484,18 @@ int opal_timing_report(opal_timing_t *t, char *fname)
             // Service event, skip it.
             continue;
         case OPAL_TIMING_TRACE:
-            rc = asprintf(&line,"[%s:%d] %s \"%s\" [OPAL_TRACE] %s:%d %.10lf\n",
-                          nodename, getpid(), jobid, ev->descr, file, ev->line,
+            rc = asprintf(&line,"[%s:%d] %s \"%s\" [OPAL_TRACE] %d %s:%d %.10lf\n",
+                          nodename, getpid(), jobid, ev->descr, ev->fib, file, ev->line,
                           ev->ts + hnp_offs + overhead);
             break;
         case OPAL_TIMING_INTBEGIN:
-            rc = asprintf(&line,"[%s:%d] %s \"%s [start]\" [OPAL_TRACE] %s:%d %.10lf\n",
-                          nodename, getpid(), jobid, descr[ev->id].descr_ev->descr,
+            rc = asprintf(&line,"[%s:%d] %s \"%s [start]\" [OPAL_TRACE] %d %s:%d %.10lf\n",
+                          nodename, getpid(), jobid, descr[ev->id].descr_ev->descr, ev->fib,
                           file, ev->line, ev->ts + hnp_offs + overhead);
             break;
         case OPAL_TIMING_INTEND:
-            rc = asprintf(&line,"[%s:%d] %s \"%s [stop]\" [OPAL_TRACE] %s:%d %.10lf\n",
-                          nodename, getpid(), jobid, descr[ev->id].descr_ev->descr,
+            rc = asprintf(&line,"[%s:%d] %s \"%s [stop]\" [OPAL_TRACE] %d %s:%d %.10lf\n",
+                          nodename, getpid(), jobid, descr[ev->id].descr_ev->descr, ev->fib,
                           file, ev->line, ev->ts + hnp_offs + overhead);
             break;
         }
