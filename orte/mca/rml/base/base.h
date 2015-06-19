@@ -89,6 +89,7 @@ typedef struct {
     opal_pointer_array_t open_channels;
 #if OPAL_ENABLE_TIMING
     bool timing;
+    uint32_t snd_cntr;
 #endif
 } orte_rml_base_t;
 ORTE_DECLSPEC extern orte_rml_base_t orte_rml_base;
@@ -176,6 +177,7 @@ typedef struct {
     /* pointer to raw data for cross-transport
      * transfers
      */
+    uint32_t snd_num;
     char *data;
 } orte_rml_send_t;
 OBJ_CLASS_DECLARATION(orte_rml_send_t);
@@ -232,6 +234,7 @@ typedef struct {
     orte_rml_tag_t tag;          // targeted tag
     orte_rml_channel_num_t channel_num; // channel number
     uint32_t seq_num;             //sequence number
+    uint32_t snd_num;
     struct iovec iov;            // the recvd data
 } orte_rml_recv_t;
 OBJ_CLASS_DECLARATION(orte_rml_recv_t);
@@ -259,7 +262,7 @@ typedef struct {
 } orte_rml_recv_request_t;
 OBJ_CLASS_DECLARATION(orte_rml_recv_request_t);
 
-#define ORTE_RML_POST_MESSAGE(p, t, c, s, b, l)                               \
+#define ORTE_RML_POST_MESSAGE(p, t, c, s, b, l, sn)                               \
     do {                                                                \
         orte_rml_recv_t *msg;                                           \
         opal_output_verbose(5, orte_rml_base_framework.framework_output, \
@@ -272,6 +275,7 @@ OBJ_CLASS_DECLARATION(orte_rml_recv_request_t);
         msg->tag = (t);                                                 \
         msg->channel_num = (c);                                         \
         msg->seq_num = (s);                                             \
+        msg->snd_num = (sn);                                            \
         msg->iov.iov_base = (IOVBASE_TYPE*)(b);                         \
         msg->iov.iov_len = (l);                                         \
         /* setup the event */                                           \

@@ -151,6 +151,7 @@ void orte_rml_base_complete_recv_msg (orte_rml_recv_t **recv_msg)
                                      msg->tag,
                                      msg->channel_num));
                 OBJ_DESTRUCT(&buf);
+                OPAL_TIMING_EVENT((&tm_rml, "from %s %d bytes [ID:%d] [RML_RECEIVE_FINISH] [TAG:%d]", ORTE_NAME_PRINT(&msg->sender), msg->iov.iov_len, msg->snd_num, msg->tag));
             } else {
                 /* deliver as an iovec */
                 post->cbfunc.iov(ORTE_SUCCESS, &msg->sender, &msg->iov, 1, msg->tag, post->cbdata);
@@ -228,15 +229,15 @@ static void msg_match_recv(orte_rml_posted_recv_t *rcv, bool get_all)
 void orte_rml_base_process_msg(int fd, short flags, void *cbdata)
 {
     orte_rml_recv_t *msg = (orte_rml_recv_t*)cbdata;
+    OPAL_TIMING_EVENT((&tm_rml,"from %s %d bytes [ID:%d] [RML_RECEIVE_START] [TAG:%d]",
+                       ORTE_NAME_PRINT(&msg->sender), msg->iov.iov_len, msg->snd_num));
     OPAL_OUTPUT_VERBOSE((5, orte_rml_base_framework.framework_output,
                          "%s message received from %s for tag %d on channel=%d",
                          ORTE_NAME_PRINT(ORTE_PROC_MY_NAME),
                          ORTE_NAME_PRINT(&msg->sender),
                          msg->tag,
                          msg->channel_num));
-
-    OPAL_TIMING_EVENT((&tm_rml,"from %s %d bytes",
-                       ORTE_NAME_PRINT(&msg->sender), msg->iov.iov_len));
+    
     if ((ORTE_RML_INVALID_CHANNEL_NUM != msg->channel_num) &&
             (NULL != orte_rml_base_get_channel(msg->channel_num) )) {
 
@@ -258,15 +259,15 @@ void orte_rml_base_process_msg(int fd, short flags, void *cbdata)
 void orte_rml_base_reprocess_msg(int fd, short flags, void *cbdata)
 {
     orte_rml_recv_t *msg = (orte_rml_recv_t*)cbdata;
+    OPAL_TIMING_EVENT((&tm_rml,"from %s %d bytes [ID:%d] [RML_RECEIVE_START] [TAG:%d] ",
+                       ORTE_NAME_PRINT(&msg->sender), msg->iov.iov_len, msg->snd_num, msg->tag));
     OPAL_OUTPUT_VERBOSE((5, orte_rml_base_framework.framework_output,
                          "%s reprocessing msg received from %s for tag %d on channel=%d",
                          ORTE_NAME_PRINT(ORTE_PROC_MY_NAME),
                          ORTE_NAME_PRINT(&msg->sender),
                          msg->tag,
                          msg->channel_num));
-
-    OPAL_TIMING_EVENT((&tm_rml,"from %s %d bytes",
-                       ORTE_NAME_PRINT(&msg->sender), msg->iov.iov_len));
+    
     orte_rml_base_complete_recv_msg ( &msg);
     /* the msg should be matched and released in this path
      add an assert (msg!= NULL) ?? */

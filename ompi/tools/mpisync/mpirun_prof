@@ -55,7 +55,7 @@ tmp_out=`pwd`"/ompi_mpirun_prof.$jobid"
 mytim=`pwd`"/ompi_timings.$jobid"
 
 export OMPI_MCA_opal_timing_output=$tmp_timings
-#export OMPI_MCA_rml_base_timing=true
+export OMPI_MCA_rml_base_timing=true
 export OMPI_MCA_oob_base_timing=true
 
 opts=`extract_nodeset_opts $@`

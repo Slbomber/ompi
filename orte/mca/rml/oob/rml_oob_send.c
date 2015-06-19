@@ -108,7 +108,7 @@ static void send_msg(int fd, short args, void *cbdata)
                          "%s rml_send_msg to peer %s at tag %d",
                          ORTE_NAME_PRINT(ORTE_PROC_MY_NAME),
                          ORTE_NAME_PRINT(peer), tag));
-    OPAL_TIMING_EVENT((&tm_rml, "to %s", ORTE_NAME_PRINT(peer)));
+    OPAL_TIMING_EVENT((&tm_rml, "to %s -1 bytes [ID:%d] [RML_INIT] [TAG:%d]", ORTE_NAME_PRINT(peer), orte_rml_base.snd_cntr, tag));
 
     /* if this is a message to myself, then just post the message
      * for receipt - no need to dive into the oob
@@ -154,6 +154,8 @@ static void send_msg(int fd, short args, void *cbdata)
         rcv = OBJ_NEW(orte_rml_recv_t);
         rcv->sender = *peer;
         rcv->tag = tag;
+        rcv->snd_num = orte_rml_base.snd_cntr;
+        orte_rml_base.snd_cntr++;
         if (NULL != req->post.send.iov) {
             /* get the total number of bytes in the iovec array */
             bytes = 0;
@@ -179,6 +181,7 @@ static void send_msg(int fd, short args, void *cbdata)
         /* post the message for receipt - since the send callback was posted
          * first and has the same priority, it will execute first
          */
+        OPAL_TIMING_EVENT((&tm_rml, "to %s %d bytes [ID:%d] [RML_RML_SEND] [TAG:%d]", ORTE_NAME_PRINT(peer), rcv->iov.iov_len,orte_rml_base.snd_cntr-1, rcv->tag));
         ORTE_RML_ACTIVATE_MESSAGE(rcv);
         OBJ_RELEASE(req);
         return;
@@ -188,6 +191,8 @@ static void send_msg(int fd, short args, void *cbdata)
     snd->dst = *peer;
     snd->origin = *ORTE_PROC_MY_NAME;
     snd->tag = tag;
+    snd->snd_num = orte_rml_base.snd_cntr;
+    orte_rml_base.snd_cntr++;
     if (NULL != req->post.send.iov) {
         snd->iov = req->post.send.iov;
         snd->count = req->post.send.count;
@@ -207,8 +212,8 @@ static void send_msg(int fd, short args, void *cbdata)
         orte_rml_base_prep_send_channel (snd->channel, snd);
     }
     /* activate the OOB send state */
+    OPAL_TIMING_EVENT((&tm_rml, "to %s %d bytes [ID:%d] [RML_OOB_SEND] [TAG:%d]", ORTE_NAME_PRINT(peer), snd->buffer->bytes_used,orte_rml_base.snd_cntr-1, snd->tag));
     ORTE_OOB_SEND(snd);
-
     OBJ_RELEASE(req);
 }
 

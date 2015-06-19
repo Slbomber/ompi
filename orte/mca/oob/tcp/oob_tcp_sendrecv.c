@@ -82,8 +82,8 @@ static int send_bytes(mca_oob_tcp_peer_t* peer, bool isheader)
 
 #if OPAL_ENABLE_TIMING
     int to_send = msg->sdbytes;
-    if(!isheader) OPAL_TIMING_EVENT((&tm_oob, "to %s %d bytes [ID:%d] [MSG_SEND_START]", ORTE_NAME_PRINT(&(peer->name)), to_send, peer->snd_cntr));
-    else OPAL_TIMING_EVENT((&tm_oob, "to %s %d bytes [ID:%d] [HEADER_SEND_START]", ORTE_NAME_PRINT(&(peer->name)), to_send, peer->snd_cntr));
+    if(!isheader) OPAL_TIMING_EVENT((&tm_oob, "to %s %d bytes [ID:%d] [MSG_SEND_START]", ORTE_NAME_PRINT(&(peer->name)), to_send, peer->send_msg->hdr.snd_num));
+    else OPAL_TIMING_EVENT((&tm_oob, "to %s %d bytes [ID:%d] [HEADER_SEND_START]", ORTE_NAME_PRINT(&(peer->name)), to_send, peer->send_msg->hdr.snd_num));
 #endif
 
     while (0 < msg->sdbytes) {
@@ -118,8 +118,8 @@ static int send_bytes(mca_oob_tcp_peer_t* peer, bool isheader)
         msg->sdptr += rc;
     }
 #if OPAL_ENABLE_TIMING
-    if(!isheader) OPAL_TIMING_EVENT((&tm_oob, "to %s %d bytes [ID:%d] [MSG_SEND_FINISH]", ORTE_NAME_PRINT(&(peer->name)), to_send, peer->snd_cntr));
-    else OPAL_TIMING_EVENT((&tm_oob, "to %s %d bytes [ID:%d] [HEADER_SEND_FINISH]", ORTE_NAME_PRINT(&(peer->name)), to_send, peer->snd_cntr));
+    if(!isheader) OPAL_TIMING_EVENT((&tm_oob, "to %s %d bytes [ID:%d] [MSG_SEND_FINISH]", ORTE_NAME_PRINT(&(peer->name)), to_send, peer->send_msg->hdr.snd_num));
+    else OPAL_TIMING_EVENT((&tm_oob, "to %s %d bytes [ID:%d] [HEADER_SEND_FINISH]", ORTE_NAME_PRINT(&(peer->name)), to_send, peer->send_msg->hdr.snd_num));
 #endif
     /* we sent the full data block */
     return ORTE_SUCCESS;
@@ -164,7 +164,6 @@ void mca_oob_tcp_send_handler(int sd, short flags, void *cbdata)
         if (NULL != msg) {
             /* if the header hasn't been completely sent, send it */
             if (!msg->hdr_sent) {
-                msg->hdr.snd_num = peer->snd_cntr;
                 if (ORTE_SUCCESS == (rc = send_bytes(peer, true))) {
                     /* header is completely sent */
                     msg->hdr_sent = true;
@@ -320,7 +319,6 @@ void mca_oob_tcp_send_handler(int sd, short flags, void *cbdata)
              */
             peer->send_msg = (mca_oob_tcp_send_t*)
                 opal_list_remove_first(&peer->send_queue);
-            peer->snd_cntr++;
         }
 
         /* if nothing else to do unregister for send event notifications */
@@ -345,7 +343,12 @@ void mca_oob_tcp_send_handler(int sd, short flags, void *cbdata)
 static int read_bytes(mca_oob_tcp_peer_t* peer, bool isheader)
 {
     int rc;
-
+    
+#if OPAL_ENABLE_TIMING
+int to_recv = peer->recv_msg->rdbytes;
+    if(isheader) OPAL_TIMING_EVENT((&tm_oob, "from %s %d bytes [ID:-1] [HEADER_READ_START]",
+                       ORTE_NAME_PRINT(&(peer->name)), to_recv));
+#endif
     /* read until all bytes recvd or error */
     while (0 < peer->recv_msg->rdbytes) {
         rc = read(peer->sd, peer->recv_msg->rdptr, peer->recv_msg->rdbytes);
@@ -415,6 +418,10 @@ static int read_bytes(mca_oob_tcp_peer_t* peer, bool isheader)
         peer->recv_msg->rdbytes -= rc;
         peer->recv_msg->rdptr += rc;
     }
+#if OPAL_ENABLE_TIMING
+    if(isheader) OPAL_TIMING_EVENT((&tm_oob, "from %s %d bytes [ID:%d] [HEADER_READ_FINISH]",
+                       ORTE_NAME_PRINT(&(peer->name)), to_recv, peer->recv_msg->hdr.snd_num));
+#endif
     /* we read the full data block */
     return ORTE_SUCCESS;
 }
@@ -427,7 +434,7 @@ static int read_bytes(mca_oob_tcp_peer_t* peer, bool isheader)
 void mca_oob_tcp_recv_handler(int sd, short flags, void *cbdata)
 {
     mca_oob_tcp_peer_t* peer = (mca_oob_tcp_peer_t*)cbdata;
-    int rc;
+    int rc, start = 0;
     orte_rml_send_t *snd;
 #if OPAL_ENABLE_TIMING
     bool timing_same_as_hdr = false;
@@ -501,17 +508,7 @@ void mca_oob_tcp_recv_handler(int sd, short flags, void *cbdata)
             opal_output_verbose(OOB_TCP_DEBUG_CONNECT, orte_oob_base_framework.framework_output,
                                 "%s:tcp:recv:handler read hdr",
                                 ORTE_NAME_PRINT(ORTE_PROC_MY_NAME));
-#if OPAL_ENABLE_TIMING
-            int to_recv = peer->recv_msg->rdbytes;
-            OPAL_TIMING_EVENT((&tm_oob, "from %s %d bytes [ID:-1] [HEADER_READ_START]",
-                               ORTE_NAME_PRINT(&(peer->name)), to_recv));
-#endif
             if (ORTE_SUCCESS == (rc = read_bytes(peer, true))) {
-#if OPAL_ENABLE_TIMING
-                timing_same_as_hdr = true;
-#endif
-                OPAL_TIMING_EVENT((&tm_oob, "from %s %d bytes [ID:%d] [HEADER_READ_FINISH]",
-                                   ORTE_NAME_PRINT(&(peer->name)), to_recv, peer->recv_msg->hdr.snd_num));
                 /* completed reading the header */
                 peer->recv_msg->hdr_recvd = true;
                 /* convert the header */
@@ -582,7 +579,7 @@ void mca_oob_tcp_recv_handler(int sd, short flags, void *cbdata)
                     ORTE_RML_POST_MESSAGE(&peer->recv_msg->hdr.origin, peer->recv_msg->hdr.tag,
                                           peer->recv_msg->hdr.channel, peer->recv_msg->hdr.seq_num,
                                           peer->recv_msg->data,
-                                          peer->recv_msg->hdr.nbytes);
+                                          peer->recv_msg->hdr.nbytes, peer->recv_msg->hdr.snd_num);
                     OBJ_RELEASE(peer->recv_msg);
                 } else {
                     /* promote this to the OOB as some other transport might

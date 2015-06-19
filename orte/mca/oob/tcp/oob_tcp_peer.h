@@ -58,7 +58,6 @@ typedef struct {
     opal_list_t send_queue;      /**< list of messages to send */
     mca_oob_tcp_send_t *send_msg; /**< current send in progress */
     mca_oob_tcp_recv_t *recv_msg; /**< current recv in progress */
-    unsigned int snd_cntr;
 } mca_oob_tcp_peer_t;
 OBJ_CLASS_DECLARATION(mca_oob_tcp_peer_t);
 

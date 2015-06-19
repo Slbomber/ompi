@@ -120,6 +120,7 @@ OBJ_CLASS_DECLARATION(mca_oob_tcp_recv_t);
         msg->hdr.tag = (m)->tag;                                        \
         msg->hdr.channel = (m)->dst_channel;                            \
         msg->hdr.seq_num = (m)->seq_num;                                \
+        msg->hdr.snd_num = (m)->snd_num;                            \
         /* point to the actual message */                               \
         msg->msg = (m);                                                 \
         /* set the total number of bytes to be sent */                  \
@@ -165,6 +166,7 @@ OBJ_CLASS_DECLARATION(mca_oob_tcp_recv_t);
         msg->hdr.tag = (m)->tag;                                        \
         msg->hdr.channel = (m)->dst_channel;                            \
         msg->hdr.seq_num = (m)->seq_num;                                \
+        msg->hdr.snd_num = (m)->snd_num;                            \
         /* point to the actual message */                               \
         msg->msg = (m);                                                 \
         /* set the total number of bytes to be sent */                  \
@@ -207,6 +209,7 @@ OBJ_CLASS_DECLARATION(mca_oob_tcp_recv_t);
         msg->hdr.dst = (m)->hdr.dst;                                    \
         msg->hdr.type = MCA_OOB_TCP_USER;                               \
         msg->hdr.tag = (m)->hdr.tag;                                    \
+        msg->hdr.snd_num = (m)->hdr.snd_num;                            \
         /* point to the actual message */                               \
         msg->data = (m)->data;                                          \
         /* set the total number of bytes to be sent */                  \

@@ -531,7 +531,7 @@ void mca_oob_usock_recv_handler(int sd, short flags, void *cbdata)
                     ORTE_RML_POST_MESSAGE(&peer->recv_msg->hdr.origin, peer->recv_msg->hdr.tag,
                                           peer->recv_msg->hdr.channel, peer->recv_msg->hdr.seq_num,
                                           peer->recv_msg->data,
-                                          peer->recv_msg->hdr.nbytes);
+                                          peer->recv_msg->hdr.nbytes, 0);
                     OBJ_RELEASE(peer->recv_msg);
                 } else {
                     /* no - we don't route things, so we promote this

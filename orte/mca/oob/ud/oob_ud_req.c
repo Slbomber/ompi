@@ -307,11 +307,11 @@ void mca_oob_ud_req_complete (mca_oob_ud_req_t *req, int rc)
                     memcpy (&data[datalen], req->req_data.iov.uiov[i].iov_base, req->req_data.iov.uiov[i].iov_len);
                     datalen += req->req_data.iov.uiov[i].iov_len;
                 }
-                ORTE_RML_POST_MESSAGE(&req->req_origin, req->req_tag, req->req_channel, req->req_seq_num, data, datalen);
+                ORTE_RML_POST_MESSAGE(&req->req_origin, req->req_tag, req->req_channel, req->req_seq_num, data, datalen, 0);
                 free(data);
             } else {
                 ORTE_RML_POST_MESSAGE(&req->req_origin, req->req_tag, req->req_channel, req->req_seq_num,
-                                      req->req_data.buf.p, req->req_data.buf.size);
+                                      req->req_data.buf.p, req->req_data.buf.size, 0);
             }
         } else {
             opal_output_verbose(1, orte_oob_base_framework.framework_output,
