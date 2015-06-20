@@ -63,6 +63,7 @@ ${ompi_instdir}/mpirun --npernode 1 $opts ${ompi_instdir}/mpisync -o $syncfile >
 
 export OMPI_MCA_opal_timing_output=$mytim
 export OMPI_MCA_opal_timing_sync_file=$syncfile
+export OMPI_MCA_opal_timing_overhead=false
 
 # Remove old output
 rm -f $tmp_timings*
